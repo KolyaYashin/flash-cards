@@ -3,7 +3,7 @@ import sqlite3
 db = sqlite3.connect('data/cards.db')
 sql = db.cursor()
 
-sql.execute("""CREATE TABLE IF NOT EXISTS words (
+sql.execute("""CREATE TABLE IF NOT EXISTS cards (
                 front TEXT,
                 back TEXT,
                 ticket INT
