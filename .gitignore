@@ -1,3 +1,4 @@
 constants.py
 *.db
 __pychache__/
+venv
