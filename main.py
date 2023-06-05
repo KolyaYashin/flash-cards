@@ -1,22 +1,6 @@
-import sqlite3
-import data.create_table
+from create_bot import dp, bot
+import handlers
 
-db = sqlite3.connect('data/cards.db')
-sql = db.cursor()
-
-sql.execute("""CREATE TABLE IF NOT EXISTS words (
-                user_id BIGINT,
-                en TEXT,
-                ru TEXT,
-                tag TEXT,
-                date DATE,
-                total SMALLINT,
-                successful SMALLINT,
-                winrate FLOAT,
-                coef FLOAT
-                )""")
-
-
-
-db.commit()
-sql.close()
+if __name__=='__main__':
+    dp.include_router(handlers.router)
+    dp.run_polling(bot)
