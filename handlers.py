@@ -35,7 +35,7 @@ async def start_command(message: Message):
 
 @router.message(Command(commands='menu'))
 async def menu_command(message: Message):
-    await message.answer('"Кто не падал, тот не поднимался. Кто не срал, тот не подтирался" © Стэтхэм',reply_markup=keyboard_menu)
+    await message.answer('Главное меню.\n\nЧитающий это, у тебя получится всё сдать, и помни главное: "Кто не падал, тот не поднимался. Кто не срал, тот не подтирался" © Стэтхэм',reply_markup=keyboard_menu)
 
 
 
@@ -99,12 +99,15 @@ async def test_start(message: Message):
     info[user_id]['data']=list(select.fetchall())
     sql.close()
     db.close()
-    info[user_id]['state'] = 'in_test'
-    i=0
-    info[user_id]['i']=i
-    info[user_id]['front'] = info[user_id]['data'][i][0]
-    info[user_id]['back'] = info[user_id]['data'][i][1]
-    await message.answer('Ответьте на вопрос:\n'+info[user_id]['front'], reply_markup=keyboard_check)
+    if len(info[user_id]['data'])==0:
+        await message.answer('Такого билета нет, или карточки не заполнены.\nВведите другой билет')
+    else:
+        info[user_id]['state'] = 'in_test'
+        i=0
+        info[user_id]['i']=i
+        info[user_id]['front'] = info[user_id]['data'][i][0]
+        info[user_id]['back'] = info[user_id]['data'][i][1]
+        await message.answer('Ответьте на вопрос:\n'+info[user_id]['front'], reply_markup=keyboard_check)
 
 @router.callback_query(Text(text=['check']), f.InTest(info=info))
 async def show_answer(callback: CallbackQuery):
