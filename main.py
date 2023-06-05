@@ -1,5 +1,6 @@
 from create_bot import dp, bot
 import handlers
+import data.create_table
 
 if __name__=='__main__':
     dp.include_router(handlers.router)
