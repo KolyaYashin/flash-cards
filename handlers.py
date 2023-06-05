@@ -1,7 +1,7 @@
 from aiogram import Router, F
 from aiogram.filters import Command, Text
 from aiogram.types import Message, CallbackQuery
-from buttons import keyboard_menu
+from buttons import keyboard_menu, keyboard_check, keyboard_correct, keyboard_empty
 import filters as f
 from constants import admin_ids
 import sqlite3
@@ -13,7 +13,9 @@ def create_empty(user_id):
     info[user_id] = {'state': 'menu',
                     'front':'',
                     'back':'',
-                    'ticket':0}
+                    'ticket':0,
+                    'data':[],
+                    'i':0}
 
 router = Router()
 
@@ -84,4 +86,62 @@ async def start_test(callback:CallbackQuery):
     await callback.message.answer("Напиши номер билета, который хотите повторить")
     user_id=callback.from_user.id
     create_empty(user_id)
+    await callback.answer()
     info[user_id]['state'] = 'in_test_ticket'
+
+@router.message(F.text, f.IsNumber(), f.InTestTicket(info=info))
+async def test_start(message: Message):
+    user_id=message.from_user.id
+    info[user_id]['ticket'] = int(message.text)
+    db=sqlite3.connect('data/cards.db')
+    sql=db.cursor()
+    select = sql.execute(f'SELECT front, back FROM cards WHERE ticket={int(message.text)}')
+    info[user_id]['data']=list(select.fetchall())
+    sql.close()
+    db.close()
+    info[user_id]['state'] = 'in_test'
+    i=0
+    info[user_id]['i']=i
+    info[user_id]['front'] = info[user_id]['data'][i][0]
+    info[user_id]['back'] = info[user_id]['data'][i][1]
+    await message.answer('Ответьте на вопрос:\n'+info[user_id]['front'], reply_markup=keyboard_check)
+
+@router.callback_query(Text(text=['check']), f.InTest(info=info))
+async def show_answer(callback: CallbackQuery):
+    user_id = callback.from_user.id
+    await callback.message.edit_text('Правильный ответ:\n'+info[user_id]['back'])
+    await callback.message.edit_reply_markup(reply_markup=keyboard_correct)
+
+@router.callback_query(Text(text=['correct']), f.InTest(info=info))
+async def if_correct(callback: CallbackQuery):
+    user_id = callback.from_user.id
+    await callback.answer()
+    i = info[user_id]['i']
+    del info[user_id]['data'][i]
+
+    if len(info[user_id]['data'])==0:
+        await callback.message.answer(f'Карточки по билету {info[user_id]["ticket"]} закончились.\nМожете написать номер следующего билета.')
+        info[user_id]['state'] = 'in_test_ticket'
+    else:
+        if i+1>=len(info[user_id]['data']):
+            i=0
+        info[user_id]['front'] = info[user_id]['data'][i][0]
+        info[user_id]['back'] = info[user_id]['data'][i][1]
+        await callback.message.edit_text('Ответьте на следующий вопрос:\n'+info[user_id]['front'])
+        await callback.message.edit_reply_markup(reply_markup=keyboard_check)
+
+@router.callback_query(Text(text=['incorrect']), f.InTest(info=info))
+async def if_incorrect(callback: CallbackQuery):
+    user_id = callback.from_user.id
+    await callback.answer()
+    i = info[user_id]['i']
+    if i+1 >= len(info[user_id]['data']):
+        info[user_id]['i']=0
+        i = info[user_id]['i']
+    else:
+        info[user_id]['i']+=1
+        i = info[user_id]['i']
+    info[user_id]['front'] = info[user_id]['data'][i][0]
+    info[user_id]['back'] = info[user_id]['data'][i][1]
+    await callback.message.edit_text('Ответьте на следующий вопрос:\n'+info[user_id]['front'])
+    await callback.message.edit_reply_markup(reply_markup=keyboard_check)
