@@ -37,6 +37,16 @@ async def start_command(message: Message):
 async def menu_command(message: Message):
     await message.answer('Главное меню.\n\nЧитающий это, у тебя получится всё сдать, и помни главное: "Кто не падал, тот не поднимался. Кто не срал, тот не подтирался" © Стэтхэм',reply_markup=keyboard_menu)
 
+@router.message(Command(commands='show'))
+async def show_tickets(message: Message):
+    dp = sqlite3.connect('data/cards.db')
+    sql = dp.cursor()
+    select = sql.execute('SELECT DISTINCT ticket FROM cards')
+    tickets_list = map(str,sorted([x[0] for x in list(select)]))
+    tickets = ", ".join(tickets_list)
+    await message.answer('Уже добавлены карточки по билетам - '+ tickets)
+    sql.close()
+    dp.close()
 
 
 @router.callback_query(Text(text=['start_add']), f.IsAdmin(admin_lists=admin_ids))
@@ -88,6 +98,7 @@ async def start_test(callback:CallbackQuery):
     create_empty(user_id)
     await callback.answer()
     info[user_id]['state'] = 'in_test_ticket'
+
 
 @router.message(F.text, f.IsNumber(), f.InTestTicket(info=info))
 async def test_start(message: Message):
