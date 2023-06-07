@@ -138,7 +138,9 @@ async def if_correct(callback: CallbackQuery):
         info[user_id]['state'] = 'in_test_ticket'
     else:
         if i+1>=len(info[user_id]['data']):
-            i=0
+            info[user_id]['i'] = 0
+            i = info[user_id]['i']
+
         info[user_id]['front'] = info[user_id]['data'][i][0]
         info[user_id]['back'] = info[user_id]['data'][i][1]
         await callback.message.edit_text('Ответьте на следующий вопрос:\n'+info[user_id]['front'])
