@@ -1,5 +1,6 @@
 constants.py
 *.db
 *.pyc
-__pychache__
+__pychache__/
 venv
+create_bot.py
