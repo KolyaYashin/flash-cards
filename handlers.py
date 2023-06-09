@@ -5,7 +5,7 @@ from buttons import keyboard_menu, keyboard_check, keyboard_correct, keyboard_em
 import filters as f
 from constants import admin_ids
 import sqlite3
-
+import random
 
 info = {}
 
@@ -92,7 +92,7 @@ async def start_add(callback:CallbackQuery):
 
 
 @router.callback_query(Text(text=['start_test']))
-async def start_test(callback:CallbackQuery):
+async def test_button_clicked(callback:CallbackQuery):
     await callback.message.answer("Напиши номер билета, который хотите повторить")
     user_id=callback.from_user.id
     create_empty(user_id)
@@ -100,13 +100,12 @@ async def start_test(callback:CallbackQuery):
     info[user_id]['state'] = 'in_test_ticket'
 
 
-@router.message(F.text, f.IsNumber(), f.InTestTicket(info=info))
-async def test_start(message: Message):
+async def start_test(message: Message, ticket_number: int):
     user_id=message.from_user.id
-    info[user_id]['ticket'] = int(message.text)
+    info[user_id]['ticket'] = ticket_number
     db=sqlite3.connect('data/cards.db')
     sql=db.cursor()
-    select = sql.execute(f'SELECT front, back FROM cards WHERE ticket={int(message.text)}')
+    select = sql.execute(f'SELECT front, back FROM cards WHERE ticket={ticket_number}')
     info[user_id]['data']=list(select.fetchall())
     sql.close()
     db.close()
@@ -119,6 +118,20 @@ async def test_start(message: Message):
         info[user_id]['front'] = info[user_id]['data'][i][0]
         info[user_id]['back'] = info[user_id]['data'][i][1]
         await message.answer('Ответьте на вопрос:\n'+info[user_id]['front'], reply_markup=keyboard_check)
+
+@router.message(F.text, f.IsNumber(), f.InTestTicket(info=info))
+async def start_by_number(message: Message):
+    await start_test(message,int(message.text))
+
+
+@router.message(Command(commands=['random']))
+async def random_start_test(message: Message):
+    db = sqlite3.connect('data/cards.db')
+    sql = db.cursor()
+    tickets = list(sql.execute('SELECT DISTINCT tickets FROM cards'))
+    sql.close()
+    db.close()
+    await start_test(message, random.choice(tickets))
 
 @router.callback_query(Text(text=['check']), f.InTest(info=info))
 async def show_answer(callback: CallbackQuery):
