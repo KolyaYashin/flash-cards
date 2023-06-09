@@ -150,7 +150,7 @@ async def if_correct(callback: CallbackQuery):
     del info[user_id]['data'][i]
 
     if len(info[user_id]['data'])==0:
-        await callback.message.answer(f'Карточки по билету {info[user_id]["ticket"]} закончились.\nМожете написать номер следующего билета.')
+        await callback.message.answer(f'Карточки по билету {info[user_id]["ticket"]} закончились.\nМожете написать номер следующего билета или нажать /random.')
         info[user_id]['state'] = 'in_test_ticket'
     else:
         if i+1>=len(info[user_id]['data']):
