@@ -128,9 +128,10 @@ async def start_by_number(message: Message):
 async def random_start_test(message: Message):
     db = sqlite3.connect('data/cards.db')
     sql = db.cursor()
-    tickets = list(sql.execute('SELECT DISTINCT tickets FROM cards'))
+    tickets = list(sql.execute('SELECT DISTINCT ticket FROM cards'))
     sql.close()
     db.close()
+
     await start_test(message, random.choice(tickets))
 
 @router.callback_query(Text(text=['check']), f.InTest(info=info))
