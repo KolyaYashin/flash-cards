@@ -132,7 +132,7 @@ async def random_start_test(message: Message):
     sql.close()
     db.close()
     create_empty(message.from_user.id)
-    choice = random.choice(tickets)
+    choice = random.choice(tickets)[0]
     await message.answer(f'Вам попался билет - {choice}.\nУдачи!')
     await start_test(message, random.choice(tickets))
 
