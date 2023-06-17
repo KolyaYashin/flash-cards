@@ -6,6 +6,7 @@ import filters as f
 from constants import admin_ids
 import sqlite3
 import random
+from ticket_list import ticket_dict
 
 info = {}
 
@@ -48,6 +49,13 @@ async def show_tickets(message: Message):
     sql.close()
     dp.close()
 
+@router.message(Command(commands='list'))
+async def show_list(message: Message):
+    to_show=''
+    for key in ticket_dict:
+        to_show+=f'{key}.{ticket_dict[key]}\n'
+    message.answer(to_show)
+    message.answer('Вернуться в меню - /menu')
 
 @router.callback_query(Text(text=['start_add']), f.IsAdmin(admin_lists=admin_ids))
 async def start_add_admin(callback: CallbackQuery):
@@ -133,7 +141,7 @@ async def random_start_test(message: Message):
     db.close()
     create_empty(message.from_user.id)
     choice = random.choice(tickets)[0]
-    await message.answer(f'Вам попался билет - {choice}.\nУдачи!')
+    await message.answer(f'Вам попался билет - {choice}, {ticket_dict[choice]}.\nУдачи!')
     await start_test(message, choice)
 
 @router.callback_query(Text(text=['check']), f.InTest(info=info))
