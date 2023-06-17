@@ -54,8 +54,8 @@ async def show_list(message: Message):
     to_show=''
     for key in ticket_dict:
         to_show+=f'{key}.{ticket_dict[key]}\n'
-    message.answer(to_show)
-    message.answer('Вернуться в меню - /menu')
+    await message.answer(to_show)
+    await message.answer('Вернуться в меню - /menu')
 
 @router.callback_query(Text(text=['start_add']), f.IsAdmin(admin_lists=admin_ids))
 async def start_add_admin(callback: CallbackQuery):
